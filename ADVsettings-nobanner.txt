@@ -1,0 +1,15 @@
+STIG,name,value
+93955,Syslog.Global.logHost,udp://shaflsngsp08.mi.ds.army.mil:514
+93957,Security.AccountLockFailures,3
+93959,Security.AccountUnlockTime,900
+94009,Security.PasswordQualityControl,"similar=deny retry=3 min=disabled,disabled,disabled,disabled,15"
+94015,Config.HostAgent.plugins.solo.enableMob,False
+94029,UserVars.ESXiShellinteractiveTimeOut,600
+94031,UserVars.ESXiShellTimeOut,600
+94033,UserVars.DcuiTimeOut,600
+94037,Syslog.global.logdir,@
+94071,Net.DVFilterBindIpAddress,!
+93951,DCUI.Access,root
+94007,config.hostagent.log.level,info
+94057,Mem.ShareForceSalting,2
+94063,Net.BlockGuestBPDU,1

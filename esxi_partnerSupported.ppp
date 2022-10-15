@@ -1,0 +1,10 @@
+﻿
+$hst = get-vmhost
+foreach  ($hname in $hst){
+connect-viserver $hname.name -User 'root' -password '1q2w3e4r5t!Q@W#E$R%T'
+
+ $esxcli=get-esxcli -vmhost $hname.name
+ $esxcli.software.acceptance.get()
+    
+disconnect-viserver $hname.name
+}

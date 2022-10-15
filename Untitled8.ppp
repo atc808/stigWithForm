@@ -1,0 +1,9 @@
+﻿
+param($vcserver='zamaaongsphx1.mi.ds.army.mil',$uid='administrator@sso.gisa.pacific')
+
+
+
+$passd=read-host 'Enter Host PW: ', "test" -assecurestring
+$Bpw=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($passd)
+$pw=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bpw)
+write-host $pw

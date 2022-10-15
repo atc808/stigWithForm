@@ -1,0 +1,73 @@
+﻿
+param([string]$vcserver='143.68.154.90',$uid='administrator@sso.gisa.pacific')
+
+
+
+$passd=read-host 'Enter Host PW: ', "test" -assecurestring
+$Bpw=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($passd)
+$pw=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bpw)
+
+
+
+
+#$vcserver="zamaa0ngspv001.mi.ds.army.mil"
+Connect-viserver -server $vcserver -user $uid -password $pw
+pause
+get-vmhost
+$hostname=get-vmhost -location "Zama" 
+$stig_hst = import-csv 'C:\Temp\Stig_Script\ADVsettings.txt' # -header STIG,Name,Value
+$file="C:\Temp\Stig_Script\ADVsettings_report.txt"
+"Host ADV settings " | out-file $file -encoding unicode
+    
+    $hst=get-vmhost -location "Zama"
+       
+    foreach ($ht in $hst){
+     "begin ADVSetting check/application for " + $ht.name | out-file $file -encoding Unicode -append
+    write-host "_____________________________________________________________________________  " 
+    "_______________________________________________________________"| out-file $file -encoding Unicode -append 
+    write-host "  "  
+    write-host $ht.name
+      
+               foreach ($line in $stig_hst)
+                {
+                $v = Get-AdvancedSetting -entity $ht.name -name $line.name  
+                  if ( -not( $v.value)  -AND $line.value -eq "!")
+                   {
+                   write-host  $line.stig " :  " $ht.name "===" $line.name " -  No Change Needed"
+                   $line.STIG + ": ***Should Not exist*** : " + $line.name +": " + $line.value | out-file $file -encoding Unicode -append
+                   }
+                   
+                 Else {         
+                            if ($line.value -eq "@" -or $line.value -eq "#" ){
+                                    write-host  $line.stig " :  " $ht.name " === " $line.name " - Manual Check or N/A"
+                                    $line.STIG + ": "+ $line.name +": Manual Check or N/A "   | out-file $file -encoding Unicode -append
+                                
+                                                              }
+                            Else {
+                                if ($v.value -ne $line.Value)   {     
+                                      
+                                        #write-host "      "  $line.name  " needs updating on "  $ht.name  " setting from" $v.value "to "  $line.value 
+                                         write-host  $line.stig " :  " $ht.name "===" $line.name " -  Not Valid - setting to proper value"
+                                        $line.STIG + ":  " + $line.name + " on " + $ht.name + " chnged from: " + $v.value + " to " + $line.value | out-file $file -encoding Unicode -append
+                                        $v | set-advancedsetting -value ($line.value) -confirm:$false -whatif | select entity,name,value
+                                        }
+                                    
+                                           
+                                 Else {
+                                      #write-host $line.STIG " " $ht.name   ": is set to "  $v.Value   "  and should be"  $line.value    "No changes needed for " $line.name 
+                                      write-host  $line.stig " :  " $ht.name "===" $line.name " -  No Change Needed"
+                                      $line.STIG + ": OK " + $line.name  +":   " + $v.value| out-file $file -encoding Unicode -append
+                                       }
+                                       }
+                   
+                    }
+               }
+    
+      }
+      
+                     Write-host "Finished"
+                     "Completed STIG application for " + $ht.name | out-file $file -encoding Unicode -append
+                     " " | out-file $file -encoding Unicode -Append
+        
+  
+  

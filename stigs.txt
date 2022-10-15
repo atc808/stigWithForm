@@ -1,0 +1,17 @@
+ V-239347,isolation.device.connectable.disable,TRUE
+ V-239335,isolation.tools.diskShrink.disable,TRUE
+ V-239336,isolation.tools.diskWiper.disable,TRUE
+ V-239344,RemoteDisplay.maxConnections,1
+ V-239345,Remotedisplay.vnc.enabled, false
+ V-239348,tools.guestlib.enableHostInfo,FALSE
+ V-239346,tools.setInfo.sizeLimit,1048576
+ V-239338,isolation.tools.hgfsServerSet.disable,TRUE
+ V-239332,isolation.tools.copy.disable,TRUE
+ V-239333,isolation.tools.dnd.disable,TRUE
+ V-239334,isolation.tools.paste.disable,TRUE
+ V-239346,tools.setinfo.sizeLimit,1048576
+ V-239353,tools.guest.desktop.autolock,TRUE
+ V-239349,sched.mem.pshare.salt,
+ V-239354,mks.enable3d,false
+
+239337,239339,239341,239342,239343,239350,242469
