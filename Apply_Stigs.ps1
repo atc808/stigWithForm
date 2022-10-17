@@ -26,7 +26,7 @@ $tx_vcip.width                   = 277
 $tx_vcip.height                  = 20
 $tx_vcip.location                = New-Object System.Drawing.Point(30,27)
 $tx_vcip.Font                    = 'Microsoft Sans Serif,10'
-$tx_vcip.Text                    = "10.10.10.253"
+$tx_vcip.Text                    = "10.10.10.2"
 
 $tx_location                     = New-Object system.Windows.Forms.TextBox
 $tx_location.multiline           = $false
@@ -42,7 +42,7 @@ $tx_uid.width                    = 202
 $tx_uid.height                   = 20
 $tx_uid.location                 = New-Object System.Drawing.Point(320,27)
 $tx_uid.Font                     = 'Microsoft Sans Serif,10'
-$tx_uid.Text                     = "administrator@sso.pierce.lab"
+$tx_uid.Text                     = "root"
 
 $tx_passd                        = New-Object system.Windows.Forms.TextBox
 $tx_passd.multiline              = $false
@@ -150,17 +150,26 @@ $lbl_fw_net.Font                 = 'Microsoft Sans Serif,10'
 $Form1.controls.AddRange(@($cb_1,$tx_vcip,$tx_location,$tx_uid,$tx_passd,$tx_path,$lbl_Path,$lbl_location,$lbl_vCenterIp,$lbl_uid,$lbl_passWord,$btn_Misc,$btn_Firewall,$btn_host,$btn_vm,$tx_fwip,$lbl_fw_net))
 
  $btn_vm.Add_Click({
-   $btn_vm.text="BLAH"
-   #Authenticate_vCenter ($tx_vcip,$tx_uid,$tx_passd)
+   $btn_vm.text="Connecting"
+   $IP=$tx_vcip.text
+   $uid=$tx_uid.text
+   $pass=$tx_passd.text
+  $ret = Authenticate_vCenter $IP $uid $pass
+  if ($ret){
+    $btn_vm.text="Connected"
+  }
    # $ret=stig_vm ($vm,$true)
 
    })
+
+
 $btn_host.Add_Click({
 
   #$fserver=$tx_vcip.text
   #$fUID=$tx_uid.text
   #$fPass=$tx_passd.text
-  $btn_host.text = "XXX"
+  $btn_host.text = $tx_passd.text
+  
   #Connect-VIServer -server $fserver -User $fUID  -Password $fPass 
   #$hlist = get-vmhost -location $tx_location.text
   
@@ -170,7 +179,7 @@ $btn_host.Add_Click({
     
 
  # }
-  $btn_host.text = "DONE"
+ # $btn_host.text = "DONE"
   })
 
 
@@ -226,191 +235,186 @@ $PSDefaultParameterValues = @{
 
 
 
-    # Function Authenticate_vCenter($vCenterAddr, $userName)
-    # {
-    # [cmdletbinding()]
-    # $passd=read-host 'Enter Host/ESXi PW: ' -assecurestring
-    # $Bpw=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($passd)
-    # $pw=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bpw)
-    
-    # $ret=Connect-viserver -server $vCenterAddr -user $userName -password $global:pw
-    # return $ret
-    # }
+    Function Authenticate_vCenter ($vcip, $userName,  $passwd)
+    { 
+     $ret = Connect-viserver -server $vcip -user $userName -password $passwd 
+    return $ret.IsConnected
+     }
 
 
-    # Function Authenticate_ESXiHost($hostAddr, $ESXiuserName)
-    # {
+    Function Authenticate_ESXiHost($hostAddr, $ESXiuserName)
+    {
 
-    # if ($usePW -ne $True)
-    #    {
-    # write-host $passd           
-    # $passd = 
-    # $passd=read-host 'Enter ESXi PW for $hostAddr:  ' -assecurestring
-    # $Bpw=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($passd)
-    # $pw=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bpw)
+    if ($usePW -ne $True)
+       {
+    write-host $passd           
+    $passd = 
+    $passd=read-host 'Enter ESXi PW for $hostAddr:  ' -assecurestring
+    $Bpw=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($passd)
+    $pw=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bpw)
   
-    #    }
+       }
 
 
         
-    #     write-host "************************************************************* $global:pw"
-    #     $ret=Connect-viserver -server $hostAddr -user $ESXiuserName -password $tx_passd.text
-    #     return $ret
-    #  }
+        write-host "************************************************************* $global:pw"
+        $ret=Connect-viserver -server $hostAddr -user $ESXiuserName -password $tx_passd.text
+        return $ret
+     }
      
 
-# function StigHost($hst,[boolean]$dryrun)
-# {
+function StigHost($hst,[boolean]$dryrun)
+{
 
-# [cmdletbinding()]
+[cmdletbinding()]
 
 
-# <# "stighost:filePath"="c:\temp\"
-#   "stighost:HostStigFile"="Hoststig.txt"
-#   "stighost:logfilename"="Apply_Stigs_HOST.log"  #>
-#    #$PSDefaultParameterValues["CmdletName:ParameterName"] 
+<# "stighost:filePath"="c:\temp\"
+  "stighost:HostStigFile"="Hoststig.txt"
+  "stighost:logfilename"="Apply_Stigs_HOST.log"  #>
+   #$PSDefaultParameterValues["CmdletName:ParameterName"] 
   
-#    $ht=$hst
-#    #$ret=authenticate_esxihost $ht.name "root" $true
-#    authenticate_esxihost $ht.name "root" $true
+   $ht=$hst
+   #$ret=authenticate_esxihost $ht.name "root" $true
+   authenticate_esxihost $ht.name "root" $true
 
-#    $filpath = $tx_path.text              #$PSDefaultParameterValues["StigHost:filepath"]
-#    $HostStigFil = "Hoststig.txt"         #$PSDefaultParameterValues["StigHost:HostStigFile"]
-#    $lfileName =   "ApplyHostStigs.log"      #$PSDefaultParameterValues["StigHost:logfileName"]
+   $filpath = $tx_path.text              #$PSDefaultParameterValues["StigHost:filepath"]
+   $HostStigFil = "Hoststig.txt"         #$PSDefaultParameterValues["StigHost:HostStigFile"]
+   $lfileName =   "ApplyHostStigs.log"      #$PSDefaultParameterValues["StigHost:logfileName"]
 
 
-#     $logfile=$filpath + $lfilename
-#     $HstFIlePath=$filpath + $HostStigFil
-#     $stig_hst = import-csv $HstFIlePath # -header STIG,Name,Value
+    $logfile=$filpath + $lfilename
+    $HstFIlePath=$filpath + $HostStigFil
+    $stig_hst = import-csv $HstFIlePath # -header STIG,Name,Value
     
-#     $ht=$hst
-#     write-host  "_____________________________________________________________________________  "
-#     out_log $logfile "_______________________________________________________________"
-#     write-host "  " 
-#     write-host $ht.name
+    $ht=$hst
+    write-host  "_____________________________________________________________________________  "
+    out_log $logfile "_______________________________________________________________"
+    write-host "  " 
+    write-host $ht.name
 
-#                foreach ($line in $stig_hst)
-#                 {
-#                   write-host $ht.name 
-#                 $v = Get-AdvancedSetting -entity $ht.name -name $line.name -ErrorAction SilentlyContinue
+               foreach ($line in $stig_hst)
+                {
+                  write-host $ht.name 
+                $v = Get-AdvancedSetting -entity $ht.name -name $line.name -ErrorAction SilentlyContinue
                 
-#                   if ( -not( $v.value)  -AND $line.value -eq "!")
-#                    {
-#                    write-host  $line.stig " :  " $ht.name "===" $line.name " -  No Change Needed"
-#                    #$line.STIG + ": ***Should Not exist*** : " + $line.name +": " + "Current Value: " + $v.Value | out-file $file -encoding Unicode -append
-#                    out_log $logfile $line.STIG + ": ***Should Not exist*** : " + $line.name +": " + "Current Value: " + $v.Value
-#                    }
+                  if ( -not( $v.value)  -AND $line.value -eq "!")
+                   {
+                   write-host  $line.stig " :  " $ht.name "===" $line.name " -  No Change Needed"
+                   #$line.STIG + ": ***Should Not exist*** : " + $line.name +": " + "Current Value: " + $v.Value | out-file $file -encoding Unicode -append
+                   out_log $logfile $line.STIG + ": ***Should Not exist*** : " + $line.name +": " + "Current Value: " + $v.Value
+                   }
 
-#                  Else {         
-#                             if ($line.value -eq "@" -or $line.value -eq "#"){
-#                                     write-host  $line.stig " :  " $ht.name " === " $line.name " - Manual Check or N/A"
-#                                     out_log $logfile $line.STIG + ": "+ $line.name +": Manual Check or N/A Current Value " + $v.Value
+                 Else {         
+                            if ($line.value -eq "@" -or $line.value -eq "#"){
+                                    write-host  $line.stig " :  " $ht.name " === " $line.name " - Manual Check or N/A"
+                                    out_log $logfile $line.STIG + ": "+ $line.name +": Manual Check or N/A Current Value " + $v.Value
 
-#                                                               }
-#                             Else {
-#                                 if ($v.value -ne $line.Value)   {     
-#                                        write-host  $line.stig " :  " $ht.name "===" $line.name " -  Not Valid - setting to proper value"
+                                                              }
+                            Else {
+                                if ($v.value -ne $line.Value)   {     
+                                       write-host  $line.stig " :  " $ht.name "===" $line.name " -  Not Valid - setting to proper value"
 
-#                                        out_log $logfile  $line.STIG + ":  " + $line.name + " on " + $ht.name + " chnged from: " + $v.value + " to " + $line.value
+                                       out_log $logfile  $line.STIG + ":  " + $line.name + " on " + $ht.name + " chnged from: " + $v.value + " to " + $line.value
                                                                                
-#                                        if ($line.target -eq "h")
-#                                        {
-#                                           hstsetting $ht.name $v $line.value
-#                                           write-host $ht.name "  " $v "  " $line.value
-#                                        }
-#                                        Else{
-#                                         cadv $v $line.value
-#                                         }
+                                       if ($line.target -eq "h")
+                                       {
+                                          hstsetting $ht.name $v $line.value
+                                          write-host $ht.name "  " $v "  " $line.value
+                                       }
+                                       Else{
+                                        cadv $v $line.value
+                                        }
 
-#                                          }
-# 
-# 
-# 
-#                                  Else {
-#                                       #write-host $line.STIG " " $ht.name ": is set to "  $v.Value   "  and should be"  $line.value    "No changes needed for " $line.name
-#                                       write-host  $line.stig " :  " $ht.name "===" $line.name " -  No Change Needed"                                       # $line.STIG + ": OK " + $line.name +":   " + $v.value| out-file $file -encoding Unicode -append
-#                                        }
-#                                        }
+                                         }
 
-#                     }
 
-#                }
-#     out_log $logfile "_____________________________________________________"
+
+                                 Else {
+                                      #write-host $line.STIG " " $ht.name ": is set to "  $v.Value   "  and should be"  $line.value    "No changes needed for " $line.name
+                                      write-host  $line.stig " :  " $ht.name "===" $line.name " -  No Change Needed"                                       # $line.STIG + ": OK " + $line.name +":   " + $v.value| out-file $file -encoding Unicode -append
+                                       }
+                                       }
+
+                    }
+
+               }
+    out_log $logfile "_____________________________________________________"
 
  
 
-#                      Write-host "Finished"
-#                      out_log $logfile "Completed STIG application for " + $ht.name
-#                      out_log $logfile " "
-#                      #Disconnect-VIServer -server $ht.name  -erroraction SilentlyContinue
+                     Write-host "Finished"
+                     out_log $logfile "Completed STIG application for " + $ht.name
+                     out_log $logfile " "
+                     #Disconnect-VIServer -server $ht.name  -erroraction SilentlyContinue
 
-# }
+}
 
-#  function HstSetting ($hname, $param1, $param2)
-#  {
-#  write-host "hstSetting Function"
+ function HstSetting ($hname, $param1, $param2)
+ {
+ write-host "hstSetting Function"
 
-#             connect-viserver $hname -User 'root' -password $pw
-#             Get-AdvancedSetting -entity $hname -name $param1.name |Set-AdvancedSetting -Value $param2 
-#             disconnect-viserver $hname -Confirm:$false
+            connect-viserver $hname -User 'root' -password $pw
+            Get-AdvancedSetting -entity $hname -name $param1.name |Set-AdvancedSetting -Value $param2 
+            disconnect-viserver $hname -Confirm:$false
 
-#  }
+ }
 
-#  Function cADV ($p1, $p2)
-#  {
+ Function cADV ($p1, $p2)
+ {
 
-#  $retv=$p1 | set-advancedsetting -value ($p2) -confirm:$false | select-object entity,name,value
-#  Get-AdvancedSetting -name $p1| set-advancedsetting -value ($p2) -confirm:$false  -whatif | select-object entity,name,value
-#  return $retv
+ $retv=$p1 | set-advancedsetting -value ($p2) -confirm:$false | select-object entity,name,value
+ Get-AdvancedSetting -name $p1| set-advancedsetting -value ($p2) -confirm:$false  -whatif | select-object entity,name,value
+ return $retv
 
-#  write-host "cADV function"
-#   }
+ write-host "cADV function"
+  }
 
-# function sfirewall ($addIP)
-# {
-# [cmdletbinding()]
-# $logfile =$tx_path.text + "firewall.log"
-#         #Disconnect-VIServer $pSVR -Force -Confirm:$false -whatif
-#         #$addIP=read-host "Input IP to add to firwall rule: "
-#         #Disconnect-viserver * -force -confirm:$True  -erroraction SilentlyContinue
-# $hosts=get-vmhost #-server $tx_vcip.text #-Location $tx_location.text
-# foreach($hname in $hosts.name){
-#   #Connect-VIServer -server $hname -user "root" -password $tx_passd.text
-#   #$btn_Firewall.text="Working"
-#   $cli=get-esxcli -vmhost $hname
-#   $ips=$cli.network.firewall.ruleset.allowedip.list()
+function sfirewall ($addIP)
+{
+[cmdletbinding()]
+$logfile =$tx_path.text + "firewall.log"
+        #Disconnect-VIServer $pSVR -Force -Confirm:$false -whatif
+        #$addIP=read-host "Input IP to add to firwall rule: "
+        #Disconnect-viserver * -force -confirm:$True  -erroraction SilentlyContinue
+$hosts=get-vmhost #-server $tx_vcip.text #-Location $tx_location.text
+foreach($hname in $hosts.name){
+  #Connect-VIServer -server $hname -user "root" -password $tx_passd.text
+  #$btn_Firewall.text="Working"
+  $cli=get-esxcli -vmhost $hname
+  $ips=$cli.network.firewall.ruleset.allowedip.list()
 
 
-#   foreach ($rs in $ips){
-#           If (($rs.ruleset -ne "vSphereClient") -and ($rs.AllowedIPAddresses -eq "ALL") -or ($cb_1.checked -eq $true))
-#           #if (($rs.ruleset -ne "vSphereClient") -and ($rs.AllowedIPAddresses -eq "All"))
-#           #if (($rs.ruleset -eq "vMotion") -and ($rs.AllowedIPAddresses -eq "All"))
-#           {
+  foreach ($rs in $ips){
+          If (($rs.ruleset -ne "vSphereClient") -and ($rs.AllowedIPAddresses -eq "ALL") -or ($cb_1.checked -eq $true))
+          #if (($rs.ruleset -ne "vSphereClient") -and ($rs.AllowedIPAddresses -eq "All"))
+          #if (($rs.ruleset -eq "vMotion") -and ($rs.AllowedIPAddresses -eq "All"))
+          {
 
-#             if ($cb_1.checked -ne $true)
-#               {
-#                 $cli.network.firewall.ruleset.set($false,$true,$rs.Ruleset)
-#               } 
+            if ($cb_1.checked -ne $true)
+              {
+                $cli.network.firewall.ruleset.set($false,$true,$rs.Ruleset)
+              } 
             
-#             $cli.network.firewall.ruleset.allowedip.add("$addIP",$rs.Ruleset)
-#             $oline= "ESXi Host: "+ $pSVR + " " + $rs.ruleset + " Current Setting: " +  $rs.AllowedIPAddresses + " Adding entry: " + $addIP
-#               write-host $oline
-#             out_log $logfile $oline
+            $cli.network.firewall.ruleset.allowedip.add("$addIP",$rs.Ruleset)
+            $oline= "ESXi Host: "+ $pSVR + " " + $rs.ruleset + " Current Setting: " +  $rs.AllowedIPAddresses + " Adding entry: " + $addIP
+              write-host $oline
+            out_log $logfile $oline
 
-#           }
-#           Else{
-#               $oline = "ESXi Host: " + $psvr + ":  ********SKIPPING:  " + $rs.Ruleset + " " + $rs.allowedipaddresses
-#               write-host $oline
-#               out_log $logfile $oline
-#               #out_log $logfile "*****************************Skipping: "+$rs.AllowedIPAddresses
-#               }
-#               }
-#             }
-#  # Disconnect-VIServer $pSVR -Force -Confirm:$false -ErrorAction SilentlyContinue
-#   #form1.$btn_Firewall.text="COMPLETE"
+          }
+          Else{
+              $oline = "ESXi Host: " + $psvr + ":  ********SKIPPING:  " + $rs.Ruleset + " " + $rs.allowedipaddresses
+              write-host $oline
+              out_log $logfile $oline
+              #out_log $logfile "*****************************Skipping: "+$rs.AllowedIPAddresses
+              }
+              }
+            }
+ # Disconnect-VIServer $pSVR -Force -Confirm:$false -ErrorAction SilentlyContinue
+  #form1.$btn_Firewall.text="COMPLETE"
   
 
-# }
+}
 
 function out_log ($lfile, [string]$line)
 {
