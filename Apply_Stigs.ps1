@@ -4,6 +4,7 @@
 #>
 Import-Module vmware.vimautomation.core -ErrorAction SilentlyContinue
 Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $Form1                           = New-Object system.Windows.Forms.Form
@@ -151,15 +152,24 @@ $Form1.controls.AddRange(@($cb_1,$tx_vcip,$tx_location,$tx_uid,$tx_passd,$tx_pat
 
  $btn_vm.Add_Click({
    $btn_vm.text="Connecting"
-   $IP=$tx_vcip.text
-   $uid=$tx_uid.text
-   $pass=$tx_passd.text
-  $ret = Authenticate_vCenter $IP $uid $pass
+  #  $IP=$tx_vcip.text
+  #  $uid=$tx_uid.text
+  #  $pass=$tx_passd.text
+  $ret = Authenticate_vCenter #$IP $uid $pass
   if ($ret){
-    $btn_vm.text="Connected"
+    
+    msgbox("Connected")
+   # [system.windows.messagebox]::show("Connected")
   }
-   # $ret=stig_vm ($vm,$true)
-
+  Else{
+    msgbox("Failed to Connect")
+  }
+    $vm = Get-VM
+    foreach ($allVMs in $vm)
+    {
+    $ret = stigvm  $allVMs $true   # STIG VM CALL
+    }
+    msgbox("Action Completed")
    })
 
 
@@ -224,7 +234,7 @@ $PSDefaultParameterValues = @{
   "stighost:logfilename"="Apply_Stigs_HOST.log" 
   
   "stigvm:filePath"="c:\temp\"
-  "stigvm:vmStigFile"="vmstig.txt"
+  "stigvm:vmStigFile"="vmstigs.txt"
   "stigvm:logfileName"="Apply_Stigs_VM.log"  
 }
 
@@ -235,13 +245,20 @@ $PSDefaultParameterValues = @{
 
 
 
-    Function Authenticate_vCenter ($vcip, $userName,  $passwd)
+    Function Authenticate_vCenter #($vcip, $userName,  $passwd)
     { 
-     $ret = Connect-viserver -server $vcip -user $userName -password $passwd 
-    return $ret.IsConnected
+      $IP=$tx_vcip.text
+      $uid=$tx_uid.text
+      $pass=$tx_passd.text
+      #$ret = Connect-viserver -server $vcip -user $userName -password $passwd 
+      $ret = Connect-viserver -server $IP -user $uid -password $pass 
+      return $ret.IsConnected
      }
 
-
+     Function msgbox([string]$msgToShow)
+     {
+      [system.windows.messagebox]::show($msgToShow)
+     }
     Function Authenticate_ESXiHost($hostAddr, $ESXiuserName)
     {
 
@@ -253,10 +270,7 @@ $PSDefaultParameterValues = @{
     $Bpw=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($passd)
     $pw=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bpw)
   
-       }
-
-
-        
+       }        
         write-host "************************************************************* $global:pw"
         $ret=Connect-viserver -server $hostAddr -user $ESXiuserName -password $tx_passd.text
         return $ret
@@ -438,12 +452,14 @@ function stigvm ($vm,[boolean]$dryrun)
       $LLINE = "BEGIN STIG APPLICATION FOR: $vm.name "
       out_log $lfile $lline
       write-host $vm.name
-    $stigPath=$filpath + $vmStigFil 
-``
-    foreach ($line in $stig_vm)
+      $dryrun = $true
+      $stigPath=$filpath + $vmStigFil 
+      #$stig_vm = import-csv $stigPath -header Stig,Name,Value
+      $stig_vm = import-csv $stigPath -header Name,Value
+      foreach ($line in $stig_vm)
         {
 
-           $v = Get-AdvancedSetting -entity $vm.name -name $line.name
+           $v = Get-AdvancedSetting  $vm.name -name $line.name
            if ($v.value -ne $line.Value) {
             write-host $line.name  " needs updating on "  $vm.name " setting to"  $line.value
             #"      " + $line.name + " needs updating on " + $vm.name + " setting to " + $line.value | out-file $file -encoding Unicode -append
